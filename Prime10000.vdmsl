@@ -1,0 +1,31 @@
+state Eratosthenes of
+    space : seq of nat1
+    primes : seq of nat1
+init s == s = mk_Eratosthenes([], [])
+end
+
+operations
+    setup : nat1 ==> ()
+    setup(x) ==
+        (space := [k | k in set {2, ..., x}];
+        primes := []);
+    
+    next : () ==> [nat1]
+    next() ==
+        cases space:
+            [x] ^ - ->
+                (primes := primes ^ [x];
+                sieve(x);
+                return x),
+            others -> return nil
+            end;
+    
+    sieve : nat1 ==> ()
+    sieve(x) ==
+        space := [space(i) | i in set inds space & space(i) mod x <> 0];
+    
+    prime10000 : () ==> seq of nat1
+    prime10000() ==
+        (setup(10000);
+        while next() <> nil do skip;
+        return primes);
