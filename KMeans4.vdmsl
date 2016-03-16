@@ -1,0 +1,58 @@
+state KMeans of
+    clusters : map set of nat to real
+    history : seq of (map set of nat to real)
+init s == s = mk_KMeans({|->}, [])
+end
+
+functions
+    make_centroids : set of set of nat -> map set of nat to real
+    make_centroids(xss) == {xs |-> centroid(xs) | xs in set xss& xs <> {}};
+    
+    centroid : set of nat -> real
+    centroid(xs) == sum(xs) / card xs;
+    
+    sum : set of nat -> nat
+    sum(xs) ==
+        cases xs:
+            {x} union rest -> x + sum(rest),
+            others -> 0
+            end
+    measure cardNat;
+    
+    cardNat : set of nat -> nat
+    cardNat(xs) == card xs;
+
+operations
+    setup : nat ==> ()
+    setup(k) ==
+        (clusters
+            := make_centroids(
+                {{j * k + i | j in set {0, ..., k - 1}} | i in set {0, ..., k - 1}});
+        history := []);
+    
+    step : () ==> ()
+    step() ==
+        (dcl next:map nat to set of nat := {|->};
+        for all cluster in set dom clusters do
+            for all x in set cluster do
+                (dcl n:set of nat := cluster;
+                dcl d:real := abs (x - clusters(n));
+                for all c in set dom clusters do
+                    (dcl d0:real := abs (x - clusters(c));
+                    if
+                        d0 < d
+                    then
+                        (d := d0;
+                        n := c)
+                    );
+                next := next munion {x |-> n});
+        clusters := make_centroids({dom (next :> {c}) | c in set rng next}));
+    
+    kmeans4 : () ==> set of set of nat
+    kmeans4() ==
+        (setup(4);
+        while clusters not in set elems history
+        do
+            (history := history ^ [clusters];
+            step());
+        return dom clusters);
