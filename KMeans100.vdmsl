@@ -1,3 +1,6 @@
+values
+    k = 10
+
 state KMeans of
     clusters : map set of nat to real
     history : seq of (map set of nat to real)
@@ -6,7 +9,7 @@ end
 
 functions
     make_centroids : set of set of nat -> map set of nat to real
-    make_centroids(xss) == {xs |-> centroid(xs) | xs in set xss& xs <> {}};
+    make_centroids(xss) == {xs |-> centroid(xs) | xs in set xss & xs <> {}};
     
     centroid : set of nat -> real
     centroid(xs) == sum(xs) / card xs;
@@ -46,13 +49,14 @@ operations
                         n := c)
                     );
                 next := next munion {x |-> n});
-        clusters := make_centroids({dom (next :> {c}) | c in set rng next}));
+        clusters
+            := make_centroids(
+                {dom (next :> {c}) | c in set rng next}));
     
-    kmeans4 : () ==> set of set of nat
-    kmeans4() ==
-        (setup(4);
-        while clusters not in set elems history
-        do
-            (history := history ^ [clusters];
-            step());
+    kmeans : () ==> set of set of nat
+    kmeans() ==
+        (setup(k);
+        while clusters not in set elems history do (
+           history := history ^ [clusters];
+           step());
         return dom clusters);
