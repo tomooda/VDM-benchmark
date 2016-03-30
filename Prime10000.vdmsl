@@ -31,4 +31,4 @@ operations
         return primes);
 
     run : () ==> ()
-    run() == let p = prime10000() in skip;
+    run() == let - = prime10000() in skip;

@@ -14,4 +14,4 @@ operations
     pi() == (for i = 1 to 1000000 do step(); return quarterPi * 4.0);
 
     bench : () ==> ()
-    bench() == let p = pi() in skip;
+    bench() == let - = pi() in skip;
