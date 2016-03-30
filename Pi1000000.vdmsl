@@ -10,5 +10,8 @@ operations
         (quarterPi := quarterPi + 1.0 / x;
         x := x * -1 + (if x < 0 then 2 else -2));
     
-    pi : nat ==> real
-    pi(times) == (for i = 1 to times do step(); return quarterPi * 4.0);
+    pi : () ==> real
+    pi() == (for i = 1 to 1000000 do step(); return quarterPi * 4.0);
+
+    bench : () ==> ()
+    bench() == let p = pi() in skip;

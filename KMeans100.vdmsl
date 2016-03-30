@@ -26,8 +26,8 @@ functions
     cardNat(xs) == card xs;
 
 operations
-    setup : nat ==> ()
-    setup(k) ==
+    setup : () ==> ()
+    setup() ==
         (clusters
             := make_centroids(
                 {{j * k + i | j in set {0, ..., k - 1}} | i in set {0, ..., k - 1}});
@@ -55,8 +55,11 @@ operations
     
     kmeans : () ==> set of set of nat
     kmeans() ==
-        (setup(k);
+        (setup();
         while clusters not in set elems history do (
            history := history ^ [clusters];
            step());
         return dom clusters);
+    
+    run : () ==> ()
+    run() == let p = kmeans() in skip;

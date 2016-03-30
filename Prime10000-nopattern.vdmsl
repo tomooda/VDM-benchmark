@@ -28,3 +28,6 @@ operations
         (setup(10000);
         while next() <> nil do skip;
         return primes);
+    
+    run : () ==> ()
+    run() == let p = prime10000() in skip;
