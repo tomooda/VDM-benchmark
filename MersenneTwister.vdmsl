@@ -9,7 +9,6 @@ genrand_nat32: () ==> nat -- get a random natural number in 32bit.
 genrand_real: () ==> real -- get a random real number in [0, 1).
 
 This specification is based on Mersenne Twister at http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html .
-As a mark of respect to the original authors, This specification is distributed under the MIT License.
 
 The MIT License (MIT)
 Copyright (c) 2016 Tomohiro Oda
