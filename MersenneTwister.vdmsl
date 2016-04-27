@@ -1,0 +1,141 @@
+module MT
+/* 
+Mersenne Twister random generator
+
+To benchmark, evaluate run().
+To use as a random generator module,
+init_genrand: nat ==> () -- initialize by giving a seed number in nat.
+genrand_nat32: () ==> nat -- get a random natural number in 32bit.
+genrand_real: () ==> real -- get a random real number in [0, 1).
+
+This specification is based on Mersenne Twister at http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html .
+As a mark of respect to the original authors, This specification is distributed under the MIT License.
+
+The MIT License (MIT)
+Copyright (c) 2016 Tomohiro Oda
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+exports
+    operations
+        init_genrand : nat ==> ();
+        genrand_nat32 : () ==> nat;
+        genrand_real : () ==> real;
+        run : () ==> ();
+definitions
+values
+     N = 624;
+     M = 397;
+     MATRIX_A = 0x9908b0df;
+     UPPER_MASK = 0x80000000;
+     LOWER_MASK = 0x7fffffff;
+
+functions
+    mul32 : nat * nat -> nat
+    mul32(x, y) ==
+        let
+            x0 = x mod 0x10000,
+            x1 = x div 0x10000 mod 0x10000,
+            y0 = y mod 0x10000,
+            y1 = y div 0x10000 mod 0x10000
+        in
+            (((x0  * y1)  * 0x10000 + (x1  * y0)  * 0x10000) + x0  * y0)
+            mod 0x100000000;
+    
+    bitAnd : nat * nat -> nat
+    bitAnd(x, y) ==
+        if
+            x = 0 or y = 0
+        then
+            0
+        else
+            (x mod 2)  * (y mod 2) + bitAnd(x div 2, y div 2)  * 2
+    measure bitAndMeasure;
+    
+    bitAndMeasure : nat * nat -> nat
+    bitAndMeasure(x, -) == x;
+    
+    bitXor : nat * nat -> nat
+    bitXor(x, y) ==
+        if x = 0
+            then y
+        elseif y = 0
+            then x
+        else
+            (x + y) mod 2 + bitXor(x div 2, y div 2)  * 2
+    measure bitXorMeasure;
+    
+    bitXorMeasure : nat * nat -> nat
+    bitXorMeasure(x, -) == x;
+    
+    mag01 : nat -> nat
+    mag01(x) == (x mod 2)  * MATRIX_A;
+
+state State of
+    mt : seq of nat
+    mti : nat
+init s == s = mk_State([0 | i in set {1, ..., N}], N + 1)
+end
+
+operations
+    setMt : nat * nat ==> ()
+    setMt(index, val) == mt(index) := val;
+    
+    init_genrand : nat ==> ()
+    init_genrand(s) ==
+        (mt(1) := s mod 0x100000000;
+        mti := 1;
+        while mti < N
+        do
+            (mt(mti + 1)
+                := (mul32(1812433253, bitXor(mt(mti), mt(mti) div 0x40000000)) + mti)
+                mod 0x100000000;
+            mti := mti + 1));
+    
+    genrand_nat32 : () ==> nat
+    genrand_nat32() ==
+        (dcl y:nat;
+        if
+            mti >= N
+        then
+            (dcl kk:nat;
+            if mti = N + 1 then init_genrand(5489);
+            kk := 0;
+            while kk < N - M
+            do
+                (y
+                    := bitAnd(mt(kk + 1), UPPER_MASK) + bitAnd(mt(kk + 2), LOWER_MASK);
+                mt(kk + 1) := bitXor(bitXor(mt((kk + M) + 1), y div 2), mag01(y));
+                kk := kk + 1);
+            while kk < N - 1
+            do
+                (y
+                    := bitAnd(mt(kk + 1), UPPER_MASK) + bitAnd(mt(kk + 2), LOWER_MASK);
+                mt(kk + 1)
+                    := bitXor(bitXor(mt((kk + M - N) + 1), y div 2), mag01(y));
+                kk := kk + 1);
+            y := bitAnd(mt(N), UPPER_MASK) + bitAnd(mt(1), LOWER_MASK);
+            mt(N) := bitXor(bitXor(mt(M), y div 2), mag01(y));
+            mti := 0);
+        y := mt(mti + 1);
+        mti := mti + 1;
+        y := bitXor(y, y div 2 ** 11);
+        y := bitXor(y, bitAnd(y  * 2 ** 7, 0x9d2c5680));
+        y := bitXor(y, bitAnd(y  * 2 ** 15, 0xefc60000));
+        y := bitXor(y, y div 2 ** 18);
+        return y);
+    
+    genrand_real : () ==> real
+    genrand_real() == return genrand_nat32()  * (1.0 / 4294967296.0);
+
+operations
+    run : () ==> ()
+    run() ==
+        (init_genrand(1234);
+        let - = [genrand_nat32() | i in set {1, ..., 1000}] in skip);
+
+end MT
