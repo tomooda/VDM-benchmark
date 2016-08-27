@@ -1,4 +1,3 @@
-module Prime
 /* 
 Prime number generator by Sieve of Eratosthenes
 This specification does not use any pattern matching in the cases statement/expression.
@@ -17,51 +16,7 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-exports
-    operations
-        setup : nat1 ==> ();
-        next : () ==> [nat1];
-        run : () ==> ();
-definitions
-state Eratosthenes of
-    space : seq of nat1
-    primes : seq of nat1
-init s == s = mk_Eratosthenes([], [])
-end
 
-operations
-    setup : nat1 ==> ()
-    setup(x) ==
-        (space := [k | k in set {2, ..., x}];
-        primes := []);
-    
-    next : () ==> [nat1]
-    next() ==
-        if
-            space = []
-        then
-            return nil
-        else
-            let x = hd space
-            in
-                (primes := primes ^ [x];
-                sieve(x);
-                return x);
-    
-    sieve : nat1 ==> ()
-    sieve(x) ==
-        space := [space(i) | i in set inds space & space(i) mod x <> 0];
-    
-    prime10000 : () ==> seq of nat1
-    prime10000() ==
-        (setup(10000);
-        while next() <> nil do skip;
-        return primes);
-    
-    run : () ==> ()
-    run() == let - = prime10000() in skip;
-
-end Prime
 state Eratosthenes of
     space : seq of nat1
     primes : seq of nat1
